@@ -73,6 +73,8 @@ public class ServletServer {
                                 LOGGER.infof("  %s", s);
                             }
                         }
+
+                        LOGGER.infof("QueryString: %s", exchange.getQueryString());
                         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/xml");
                         exchange.getResponseSender().send("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><Response><Say>Hello World</Say><Play>https://api.twilio.com/Cowbell.mp3</Play></Response>");
                     });
