@@ -26,7 +26,11 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.handlers.PathHandler;
 import io.undertow.servlet.api.DeploymentInfo;
 import io.undertow.servlet.api.DeploymentManager;
+import io.undertow.util.HeaderMap;
+import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
+
+import org.jboss.logging.Logger;
 
 import static io.undertow.servlet.Servlets.defaultContainer;
 import static io.undertow.servlet.Servlets.deployment;
@@ -36,7 +40,7 @@ import static io.undertow.servlet.Servlets.servlet;
  * @author Stuart Douglas
  */
 public class ServletServer {
-
+    private static final Logger LOGGER = Logger.getLogger(ServletServer.class);
 
     public static final String MYAPP = "/";
 
@@ -62,9 +66,16 @@ public class ServletServer {
             PathHandler path = Handlers.path(Handlers.redirect(MYAPP))
                     .addPrefixPath(MYAPP, servletHandler)
                     .addPrefixPath("/voice", exchange -> {
-                    exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/xml");
-                    exchange.getResponseSender().send("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><Response><Say>Hello World</Say><Play>https://api.twilio.com/Cowbell.mp3</Play></Response>");
-                });
+                        HeaderMap headers = exchange.getRequestHeaders();
+                        for (HeaderValues header : headers) {
+                            LOGGER.infof("%s:", header.getHeaderName());
+                            for (String s : header) {
+                                LOGGER.infof("  %s", s);
+                            }
+                        }
+                        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/xml");
+                        exchange.getResponseSender().send("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><Response><Say>Hello World</Say><Play>https://api.twilio.com/Cowbell.mp3</Play></Response>");
+                    });
             Undertow server = Undertow.builder()
                     .addHttpListener(8080, "0.0.0.0")
                     .setHandler(path)
