@@ -26,6 +26,7 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.handlers.PathHandler;
 import io.undertow.servlet.api.DeploymentInfo;
 import io.undertow.servlet.api.DeploymentManager;
+import io.undertow.util.Headers;
 
 import static io.undertow.servlet.Servlets.defaultContainer;
 import static io.undertow.servlet.Servlets.deployment;
@@ -48,7 +49,7 @@ public class ServletServer {
                     .setDeploymentName("test.war")
                     .addServlets(
                             servlet("MessageServlet", MessageServlet.class)
-                                    .addInitParam("message", "Hello World")
+                                    .addInitParam("message", "Hello World 2")
                                     .addMapping("/*"),
                             servlet("MyServlet", MessageServlet.class)
                                     .addInitParam("message", "MyServlet")
@@ -59,7 +60,11 @@ public class ServletServer {
 
             HttpHandler servletHandler = manager.start();
             PathHandler path = Handlers.path(Handlers.redirect(MYAPP))
-                    .addPrefixPath(MYAPP, servletHandler);
+                    .addPrefixPath(MYAPP, servletHandler)
+                    .addPrefixPath("/voice", exchange -> {
+                    exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/xml");
+                    exchange.getResponseSender().send("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><Response><Say>Hello World</Say><Play>https://api.twilio.com/Cowbell.mp3</Play></Response>");
+                });
             Undertow server = Undertow.builder()
                     .addHttpListener(8080, "0.0.0.0")
                     .setHandler(path)
