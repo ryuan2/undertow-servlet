@@ -53,7 +53,7 @@ public class ServletServer {
                     .setDeploymentName("test.war")
                     .addServlets(
                             servlet("MessageServlet", MessageServlet.class)
-                                    .addInitParam("message", "Hello World 2")
+                                    .addInitParam("message", "Hello World")
                                     .addMapping("/*"),
                             servlet("MyServlet", MessageServlet.class)
                                     .addInitParam("message", "MyServlet")
@@ -76,7 +76,20 @@ public class ServletServer {
 
                         LOGGER.infof("QueryString: %s", exchange.getQueryString());
                         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/xml");
-                        exchange.getResponseSender().send("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><Response><Say>Hello World</Say><Play>https://api.twilio.com/Cowbell.mp3</Play></Response>");
+                        exchange.getResponseSender().send("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><Response><Say>Sip domain</Say></Response>");
+                    })
+                    .addPrefixPath("/webhook", exchange -> {
+                        HeaderMap headers = exchange.getRequestHeaders();
+                        for (HeaderValues header : headers) {
+                            LOGGER.infof("%s:", header.getHeaderName());
+                            for (String s : header) {
+                                LOGGER.infof("  %s", s);
+                            }
+                        }
+
+                        LOGGER.infof("QueryString: %s", exchange.getQueryString());
+                        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/xml");
+                        exchange.getResponseSender().send("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><Response><Say>Web hook</Say></Response>");
                     });
             Undertow server = Undertow.builder()
                     .addHttpListener(8080, "0.0.0.0")
